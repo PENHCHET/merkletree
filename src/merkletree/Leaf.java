@@ -1,5 +1,6 @@
 package merkletree;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 /**
@@ -81,10 +82,15 @@ public class Leaf
 	{
 		final StringBuilder str = new StringBuilder();
 		
+                str.append("[");
+                
 		for(byte[] block: dataBlock)
 		{
-			str.append(toHexString(block));
+                    //str.append(toHexString(block));
+                    str.append("[" + new String(block, StandardCharsets.UTF_8) + "]");
 		}
+                
+                str.append("]");
 		
 		return(str.toString());
 	}

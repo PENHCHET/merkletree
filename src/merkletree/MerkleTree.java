@@ -60,6 +60,17 @@ public class MerkleTree
 	}
 	
 	/**
+	 * Initialises an empty Merkle Tree using the specified
+	 * digest.
+	 * 
+         * @param md The message digest algorithm to be used by the tree
+	 * @param digest The digest to be used by the tree
+	 */
+        public MerkleTree (MessageDigest md, byte[] digest) {
+            this.md = md;
+            this.digest = digest;
+        }
+	/**
 	 * Adds two child subtrees to this Merkle Tree.
 	 * 
 	 * @param leftChild The left child tree
@@ -185,15 +196,19 @@ public class MerkleTree
 	 * 
 	 * @param indent The number of spaces to indent
 	 */
-	private void prettyPrint(final int indent)
+	private String toString(final int indent)
 	{
+            
+                final StringBuilder str = new StringBuilder();
+                
 		for(int idx=0; idx<indent; idx++)
 		{
-			System.out.print(" ");
+			str.append(" ");
 		}
 		
 		// Print root digest
-		System.out.println("Node digest: " + toHexString(digest()));
+		str.append("Node digest: " + toHexString(digest()));
+                str.append("\n");
 			
 		// Print children on subsequent line, further indented
 		if (rightLeaf!=null && leftLeaf!=null)
@@ -202,33 +217,40 @@ public class MerkleTree
 			// Indent children an extra space
 			for(int idx=0; idx<indent+1; idx++)
 			{
-				System.out.print(" ");
+				str.append(" ");
 			}
 			
-			System.out.println("Left leaf: " + rightLeaf.toString() +
-					           " Right leaf: " + leftLeaf.toString());
-			
+			str.append("Left leaf : " + rightLeaf.toString() + "\n");
+                        
+			for(int idx=0; idx<indent+1; idx++)
+			{
+				str.append(" ");
+			}
+                        str.append("Right leaf: " + leftLeaf.toString() + "\n");
 		}
 		else if (rightTree!=null && leftTree!=null)
 		{
 			// Children are Merkle Trees
 			// Indent children an extra space
-			rightTree.prettyPrint(indent+1);
-			leftTree.prettyPrint(indent+1);
+			str.append(rightTree.toString(indent+1));
+			str.append(leftTree.toString(indent+1));
 		}
 		else
 		{
 			// Tree is empty
-			System.out.println("Empty tree");
+			str.append("Empty tree");
+                        str.append("\n");
 		}
+                
+                return str.toString();
 	}
 	
 	/**
 	 * Formatted print out of the contents of the tree
 	 */
-	public void prettyPrint()
+	public String toString()
 	{
 		// Pretty print the tree, starting with zero indent
-		prettyPrint(0);
+		return toString(0);
 	}
 }

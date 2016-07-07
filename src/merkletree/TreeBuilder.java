@@ -77,7 +77,7 @@ public class TreeBuilder
 		merkleTree.add(branch1, branch2);
 		
 		// Return the digest for the entire tree
-		merkleTree.prettyPrint();
+		System.out.println(merkleTree);
 	}
 
 }
