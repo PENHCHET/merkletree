@@ -11,6 +11,7 @@ import java.nio.charset.StandardCharsets;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.sql.Timestamp;
 
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -110,7 +111,10 @@ public class TreeCertificate implements Serializable {
 
             for (int j = 0; j < rows.get(i).size(); j++) {
 
-                row.put(j, rows.get(i).get(j));
+                if (rows.get(i).get(j) instanceof Timestamp) // timestamps can output different text if timezones are different
+                    row.put(j, ((Timestamp) rows.get(i).get(j)).getTime());
+                else 
+                    row.put(j, rows.get(i).get(j));
             }
 
             result.put(i, row);
@@ -155,6 +159,96 @@ public class TreeCertificate implements Serializable {
         return leafs;
     }
 
+
+    public static byte[]  getLeafHashes(Leaf leaf) {
+        // Define the message digest algorithm to use
+        MessageDigest md = null;
+        try 
+        {
+                md = MessageDigest.getInstance(hashAlgorithm);
+        } 
+        catch (NoSuchAlgorithmException e) 
+        {
+                // Should never happen, we specified SHA, a valid algorithm
+                assert false;
+        }                        
+
+        final List<byte[]> dataBlock = leaf.getDataBlock();
+
+        // Create a hash of this data block using the 
+        // specified algorithm
+        final int numBlocks = dataBlock.size();
+        for (int index=0; index<numBlocks-1; index++)
+        {
+                md.update(dataBlock.get(index));
+        }
+        // Complete the digest with the final block
+        return md.digest(dataBlock.get(numBlocks-1));
+        
+    }
+    public static byte[][] getLeafsHashes(Leaf[] leafs) {
+        if (leafs == null || leafs.length < 2) return null;
+
+        byte[][] h = new byte[leafs.length][];
+
+        // Define the message digest algorithm to use
+        MessageDigest md = null;
+        try 
+        {
+                md = MessageDigest.getInstance(hashAlgorithm);
+        } 
+        catch (NoSuchAlgorithmException e) 
+        {
+                // Should never happen, we specified SHA, a valid algorithm
+                assert false;
+        } 
+
+        for (int i = 0; i < leafs.length; i++) {                        
+
+            final List<byte[]> dataBlock = leafs[i].getDataBlock();
+
+            // Create a hash of this data block using the 
+            // specified algorithm
+            final int numBlocks = dataBlock.size();
+            for (int index=0; index<numBlocks-1; index++)
+            {
+                    md.update(dataBlock.get(index));
+            }
+            // Complete the digest with the final block
+            h[i] = md.digest(dataBlock.get(numBlocks-1));
+        }
+
+        return h;
+    }
+    public static MerkleTree[] getFirstLevel(byte[][] leafHashes) {
+
+        if (leafHashes == null || leafHashes.length < 2) return null;
+
+        MerkleTree[] m = new MerkleTree[leafHashes.length/2];
+
+        // Define the message digest algorithm to use
+        MessageDigest md = null;
+        try 
+        {
+                md = MessageDigest.getInstance(hashAlgorithm);
+        } 
+        catch (NoSuchAlgorithmException e) 
+        {
+                // Should never happen, we specified SHA, a valid algorithm
+                assert false;
+        } 
+
+        for (int i = 0, j = 0; i < leafHashes.length; i += 2, j++) {                        
+
+                    md.update(leafHashes[i]);
+                    byte[] digest = md.digest(leafHashes[i+1]);
+                
+                    m[j] = new MerkleTree(md, digest);
+        }
+
+        return m;
+    }
+    
     public static MerkleTree[] getFirstLevel(Leaf[] leafs) {
 
         if (leafs == null || leafs.length < 2) return null;

@@ -32,7 +32,7 @@ public class MerkleTree
 	 * @return The digest generated from the leaf
 	 */
 	private byte[] digest(Leaf leaf)
-	{
+	{    
 		final List<byte[]> dataBlock = leaf.getDataBlock();
 		
 		// Create a hash of this data block using the 
@@ -43,9 +43,8 @@ public class MerkleTree
 			md.update(dataBlock.get(index));
 		}
 		// Complete the digest with the final block
-		digest = md.digest(dataBlock.get(numBlocks-1));
+		return md.digest(dataBlock.get(numBlocks-1));
 		
-		return (digest);
 	}
 	
 	/**
@@ -84,8 +83,12 @@ public class MerkleTree
 		// Calculate the message digest using the
 		// specified digest algorithm and the 
 		// contents of the two child nodes 
-		md.update(leftTree.digest());
-		digest = md.digest(rightTree.digest());
+                
+                byte[] left = leftTree.digest();
+                byte[] right = rightTree.digest();
+                
+		md.update(left);
+		digest = md.digest(right);
 	}
 	
 	/**
@@ -102,10 +105,14 @@ public class MerkleTree
 		// Calculate the message digest using the
 		// specified digest algorithm and the 
 		// contents of the two child nodes 
-		md.update(digest(leftLeaf));
-		digest = md.digest(digest(rightLeaf));
+                
+                byte[] left = digest(leftLeaf);
+                byte[] right = digest(rightLeaf);
+                
+		md.update(left);
+		digest = md.digest(right);
 	}
-	
+        
 	/**
 	 * @return The left child tree if there is one, else returns <code>null</code>
 	 */
